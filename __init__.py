@@ -20,6 +20,9 @@ from . import client
 
 addons = []
 
+def isntCompatible(addon):
+  return tuple(addon['blender']) > bpy.app.version
+
 class ImportPackage(bpy.types.Operator, ImportHelper):
   """Import a Blender Depot package file"""
   bl_idname = "depot.import"
@@ -96,6 +99,8 @@ class GroupSelect(bpy.types.Operator):
   def execute(self, context):
 
     for addon in addons:
+      if isntCompatible(addon): continue
+
       addon['selected'] = self.all
 
     return {'FINISHED'}
@@ -185,7 +190,7 @@ class DepotPrefs(bpy.types.AddonPreferences):
           row.label(text = addon.get('category') + ': ' + addon.get('name'))
 
           # Check the addon compatibility with user's installation of Blender
-          if tuple(addon['blender']) > bpy.app.version:
+          if isntCompatible(addon):
             row = row.row()
             row.alignment = 'RIGHT'
             row.label(text = 'Incompatible addon', icon = 'ERROR')
