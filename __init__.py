@@ -3,7 +3,7 @@ bl_info = {
     "description": "Resources importer from Blender Depot",
     "author": "Akash Hamirwasia",
     "version": (0, 1, 0),
-    "blender": (2, 79, 0),
+    "blender": (2, 80, 0),
     "location": "View3D > Add > Mesh"
                 "Hello",
     "warning": "", # used for warning icon and text in addons panel
@@ -20,12 +20,16 @@ from . import client
 
 addons = []
 
+# Checks if add-on is compatible with current version of Blender
+def isntCompatible(addon):
+  return tuple(addon['blender']) > bpy.app.version or (bpy.app.version >= (2, 80, 0) and tuple(addon['blender'])  < (2, 80, 0))
+
 class ImportPackage(bpy.types.Operator, ImportHelper):
   """Import a Blender Depot package file"""
   bl_idname = "depot.import"
   bl_label = "Import package"
 
-  filter_glob = bpy.props.StringProperty(
+  filter_glob: bpy.props.StringProperty(
                   default="*.json",
                   options={'HIDDEN'},
                 )
@@ -57,7 +61,7 @@ class ItemToggle(bpy.types.Operator):
   bl_idname = "depot.ui_item_toggle"
   bl_label = 'Toggle Item'
 
-  item = bpy.props.StringProperty()
+  item: bpy.props.StringProperty()
 
   def execute(self, context):
 
@@ -74,7 +78,7 @@ class ItemSelect(bpy.types.Operator):
   bl_idname = "depot.ui_item_select"
   bl_label = 'Select Item'
 
-  item = bpy.props.StringProperty()
+  item: bpy.props.StringProperty()
 
   def execute(self, context):
 
@@ -91,11 +95,13 @@ class GroupSelect(bpy.types.Operator):
   bl_idname = "depot.ui_group_select"
   bl_label = 'Group select'
 
-  all = bpy.props.BoolProperty()
+  all: bpy.props.BoolProperty()
 
   def execute(self, context):
 
     for addon in addons:
+      if isntCompatible(addon): continue
+
       addon['selected'] = self.all
 
     return {'FINISHED'}
@@ -113,6 +119,9 @@ class ImportSelected(bpy.types.Operator):
   def execute(self, context):
     addons_path = bpy.utils.user_resource('SCRIPTS', 'addons')
 
+    if not os.path.exists(addons_path):
+      os.makedirs(addons_path)
+
     for addon in addons:
       if addon.get('selected'):
         src_path = addon['addon_path']
@@ -124,7 +133,12 @@ class ImportSelected(bpy.types.Operator):
           shutil.copyfile(src_path, os.path.join(addons_path, os.path.basename(src_path)))
 
     # Refresh the addons list
-    bpy.ops.wm.addon_refresh()
+    try:
+      # 2.7x version
+      bpy.ops.wm.addon_refresh()
+    except AttributeError:
+      # 2.8x version
+      bpy.ops.preferences.addon_refresh()
     return {'FINISHED'}
 
 class ClearCache(bpy.types.Operator):
@@ -152,13 +166,13 @@ class DepotPrefs(bpy.types.AddonPreferences):
     def draw(self, context):
       layout = self.layout
       col = layout.column()
-      split = col.split(percentage = 0.8, align = True)
+      split = col.split(factor = 0.8, align = True)
       col = split.column(align = True)
       col.scale_y = 1.5
       col.operator(ImportPackage.bl_idname, text = 'Import package', icon = 'PACKAGE')
       col = split.column(align = True)
       col.scale_y = 1.5
-      col.operator(ClearCache.bl_idname, text = 'Clear cache', icon = 'LOAD_FACTORY')
+      col.operator(ClearCache.bl_idname, text = 'Clear cache', icon = 'TRASH')
 
       col = layout.column()
 
@@ -185,7 +199,7 @@ class DepotPrefs(bpy.types.AddonPreferences):
           row.label(text = addon.get('category') + ': ' + addon.get('name'))
 
           # Check the addon compatibility with user's installation of Blender
-          if tuple(addon['blender']) > bpy.app.version:
+          if isntCompatible(addon):
             row = row.row()
             row.alignment = 'RIGHT'
             row.label(text = 'Incompatible addon', icon = 'ERROR')
