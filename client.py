@@ -1,4 +1,4 @@
-import json, re, os, requests, zipfile
+import json, re, os, requests, zipfile, platform
 
 def get_addon_info(path):
 
@@ -85,7 +85,34 @@ def recursive_find(path, packageData, addons=[], depth=0):
 
 def get_resources(folder, packageData):
   for addon in packageData:
-    r = requests.get('https://api.github.com/repos/' + addon + '/zipball');
+    # Get releases of the repo
+    r = requests.get('https://api.github.com/repos/' + addon + '/releases');
+    releases = r.json()
+
+    # If there are any releases
+    if releases:
+      # Get the OS name
+      platfrm = platform.system().lower()
+      platfrm = 'mac' if platfrm == 'darwin' else platfrm
+
+      for release in releases:
+        # Ignore prereleases
+        if not release['prerelease']:
+          # Set the 1st package as the download url
+          url = release['assets'][0]['browser_download_url']
+
+          # Iterate through rest of the assets and check for OS dependent package
+          for assets in release['assets']:
+            if platfrm in assets['name']:
+              url = assets['browser_download_url']
+              break
+
+          # Make the request to the download url
+          r = requests.get(url)
+          break
+    else:
+      # If there are no releases, then clone the master branch
+      r = requests.get('https://api.github.com/repos/' + addon + '/zipball');
 
     filepath = os.path.join(folder, addon.replace('/', '_')+'.zip')
 
@@ -93,12 +120,14 @@ def get_resources(folder, packageData):
       f.write(r.content)
 
     with zipfile.ZipFile(filepath, 'r') as zf:
+      addon_folder = None
       for i, file in enumerate(zf.filelist):
-        if i == 0:
+        if i == 0 and file.filename.endswith('/'):
           addon_folder = file
           continue
 
-        file.filename = file.filename.replace(addon_folder.filename, '')
+        if addon_folder:
+          file.filename = file.filename.replace(addon_folder.filename, '')
         zf.extract(file, os.path.join(folder, addon.replace('/', ':')))
 
     # Delete the extracted zipfile
