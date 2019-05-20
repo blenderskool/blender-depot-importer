@@ -34,8 +34,8 @@ def get_addon_info(path):
       src_folder = os.path.basename(temp_src)
       temp_src = os.path.dirname(temp_src)
 
-    if ':' in src_folder:
-      src_folder = src_folder.split(':')[1]
+    if '.' in src_folder:
+      src_folder = src_folder.split('.')[1]
 
     addon_info['addon_path'] = src_path
     addon_info['addon_folder'] = src_folder
@@ -53,7 +53,7 @@ def recursive_find(path, packageData, addons=[], depth=0):
   
   # If depth is 0 then include the paths from the packageData as the folders have similar names as the
   # resource ID in the packageData
-  paths = [ a.replace('/', ':') for a in packageData ] if packageData else os.listdir(path)
+  paths = [ a.replace('/', '.') for a in packageData ] if packageData else os.listdir(path)
   
   # List all file paths in the directory
   for file in paths:
@@ -128,7 +128,8 @@ def get_resources(folder, packageData):
 
         if addon_folder:
           file.filename = file.filename.replace(addon_folder.filename, '')
-        zf.extract(file, os.path.join(folder, addon.replace('/', ':')))
+        print(folder, addon)
+        zf.extract(file, os.path.join(folder, addon.replace('/', '.')))
 
     # Delete the extracted zipfile
     os.remove(filepath)
