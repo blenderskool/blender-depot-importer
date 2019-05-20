@@ -128,6 +128,7 @@ class ImportSelected(bpy.types.Operator):
 
     # Refresh the addons list
     bpy.ops.wm.addon_refresh()
+    self.report({'INFO'}, 'Installed the selected addons')
     return {'FINISHED'}
 
 class ClearCache(bpy.types.Operator):
