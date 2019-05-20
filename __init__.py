@@ -4,14 +4,12 @@ bl_info = {
     "author": "Akash Hamirwasia",
     "version": (0, 1, 0),
     "blender": (2, 80, 0),
-    "location": "View3D > Add > Mesh"
-                "Hello",
+    "location": "User Preferences > Addons > Blender Depot importer",
     "warning": "", # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/My_Script",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    "wiki_url": "https://github.com/blenderskool/blender-depot-importer/wiki/",
+    "tracker_url": "https://github.com/blenderskool/blender-depot-importer/issues",
     "support": "COMMUNITY",
-    "category": "Add Mesh"
+    "category": "Import-Export"
 }
 
 import bpy, json, os, shutil
