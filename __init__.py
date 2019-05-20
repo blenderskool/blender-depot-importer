@@ -137,6 +137,8 @@ class ImportSelected(bpy.types.Operator):
     except AttributeError:
       # 2.8x version
       bpy.ops.preferences.addon_refresh()
+
+    self.report({'INFO'}, 'Installed the selected addons')
     return {'FINISHED'}
 
 class ClearCache(bpy.types.Operator):
