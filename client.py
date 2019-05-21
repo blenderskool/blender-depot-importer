@@ -115,6 +115,7 @@ def get_resources(folder, packageData):
           # If no custom binaries, then fallback to zipball
           else:
             url = release['zipball_url']
+            r = requests.get(url)
     else:
       # If there are no releases, then clone the master branch
       r = requests.get('https://api.github.com/repos/' + addon + '/zipball');
