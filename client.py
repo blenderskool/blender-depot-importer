@@ -134,7 +134,6 @@ def get_resources(folder, packageData):
 
         if addon_folder:
           file.filename = file.filename.replace(addon_folder.filename, '')
-        print(folder, addon)
         zf.extract(file, os.path.join(folder, addon.replace('/', '.')))
 
     # Delete the extracted zipfile
