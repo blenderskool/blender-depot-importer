@@ -98,18 +98,23 @@ def get_resources(folder, packageData):
       for release in releases:
         # Ignore prereleases
         if not release['prerelease']:
-          # Set the 1st package as the download url
-          url = release['assets'][0]['browser_download_url']
+          # If there are custom binarines by the author, then fetch those
+          if release['assets']:
+            # Set the 1st package as the download url
+            url = release['assets'][0]['browser_download_url']
 
-          # Iterate through rest of the assets and check for OS dependent package
-          for assets in release['assets']:
-            if platfrm in assets['name']:
-              url = assets['browser_download_url']
-              break
+            # Iterate through rest of the assets and check for OS dependent package
+            for assets in release['assets']:
+              if platfrm in assets['name']:
+                url = assets['browser_download_url']
+                break
 
-          # Make the request to the download url
-          r = requests.get(url)
-          break
+            # Make the request to the download url
+            r = requests.get(url)
+            break
+          # If no custom binaries, then fallback to zipball
+          else:
+            url = release['zipball_url']
     else:
       # If there are no releases, then clone the master branch
       r = requests.get('https://api.github.com/repos/' + addon + '/zipball');
